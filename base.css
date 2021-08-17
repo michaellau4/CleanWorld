@@ -7,3 +7,18 @@ body {
   padding: 0;
   overscroll-behavior: none;
 }
+
+.nav-bar {
+  display: flex;
+  position: relative;
+  height: 80px;
+  background-color: burlywood;
+}
+
+.game-nav {
+  position: inherit;
+  /* top: 80px; */
+  background-color: transparent;
+  color: black;
+  font-size: 26px;
+}
