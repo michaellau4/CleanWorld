@@ -100,6 +100,7 @@ class BasicCharacterController {
       loader.load('running.fbx', (a) => { _OnLoad('run', a); });
       loader.load('idle.fbx', (a) => { _OnLoad('idle', a); });
       loader.load('dance.fbx', (a) => { _OnLoad('dance', a); });
+      loader.load('gathering.fbx', (a) => { _OnLoad('gather', a); });
     });
   }
 
@@ -204,6 +205,7 @@ class BasicCharacterControllerInput {
       right: false,
       space: false,
       shift: false,
+      e: false,
     };
     document.addEventListener('keydown', (e) => this._onKeyDown(e), false);
     document.addEventListener('keyup', (e) => this._onKeyUp(e), false);
@@ -229,6 +231,9 @@ class BasicCharacterControllerInput {
       case 16: // SHIFT
         this._keys.shift = true;
         break;
+      case 69: // e
+        this._keys.e = true;
+        break;
     }
   }
 
@@ -251,6 +256,9 @@ class BasicCharacterControllerInput {
         break;
       case 16: // SHIFT
         this._keys.shift = false;
+        break;
+      case 69: // e
+        this._keys.e = false;
         break;
     }
   }
@@ -303,9 +311,9 @@ class CharacterFSM extends FiniteStateMachine {
     this._AddState('walk', WalkState);
     this._AddState('run', RunState);
     this._AddState('dance', DanceState);
+    this._AddState('gather', GatherState);
   }
 };
-
 
 class State {
   constructor(parent) {
@@ -317,8 +325,7 @@ class State {
   Update() {}
 };
 
-
-class DanceState extends State {
+class GatherState extends State {
   constructor(parent) {
     super(parent);
 
@@ -328,11 +335,11 @@ class DanceState extends State {
   }
 
   get Name() {
-    return 'dance';
+    return 'gather';
   }
 
   Enter(prevState) {
-    const curAction = this._parent._proxy._animations['dance'].action;
+    const curAction = this._parent._proxy._animations['gather'].action;
     const mixer = curAction.getMixer();
     mixer.addEventListener('finished', this._FinishedCallback);
 
@@ -355,7 +362,58 @@ class DanceState extends State {
   }
 
   _Cleanup() {
-    const action = this._parent._proxy._animations['dance'].action;
+    const action = this._parent._proxy._animations['gather'].action;
+    
+    action.getMixer().removeEventListener('finished', this._CleanupCallback);
+  }
+
+  Exit() {
+    this._Cleanup();
+  }
+
+  Update(_) {
+  }
+};
+
+
+class DanceState extends State {
+  constructor(parent) {
+    super(parent);
+
+    this._FinishedCallback = () => {
+      this._Finished();
+    }
+  }
+
+  get Name() {
+    return 'gather';
+  }
+
+  Enter(prevState) {
+    const curAction = this._parent._proxy._animations['gather'].action;
+    const mixer = curAction.getMixer();
+    mixer.addEventListener('finished', this._FinishedCallback);
+
+    if (prevState) {
+      const prevAction = this._parent._proxy._animations[prevState.Name].action;
+
+      curAction.reset();  
+      curAction.setLoop(THREE.LoopOnce, 1);
+      curAction.clampWhenFinished = true;
+      curAction.crossFadeFrom(prevAction, 0.2, true);
+      curAction.play();
+    } else {
+      curAction.play();
+    }
+  }
+
+  _Finished() {
+    this._Cleanup();
+    this._parent.SetState('idle');
+  }
+
+  _Cleanup() {
+    const action = this._parent._proxy._animations['gather'].action;
     
     action.getMixer().removeEventListener('finished', this._CleanupCallback);
   }
@@ -617,6 +675,7 @@ class LoadWorld {
     this._LoadRocks();
     // this._LoadHouse();
     this._LoadClouds();
+    this._LoadApples();
     this._LoadTrashCans();
     this._LoadGrass();
     this._LoadBushes();
@@ -777,6 +836,29 @@ class LoadWorld {
         scene: this._scene,
         resourcePath: './resources/trees/',
         resourceName: 'Grass_2.fbx',
+        scale: 0.05,
+        emissive: new THREE.Color(0x000000),
+        specular: new THREE.Color(0x000000),
+        receiveShadow: true,
+        castShadow: true
+      }));
+      e.AddComponent(new spatial_grid_controller.SpatialGridController({grid: this._grid}));
+      e.SetPosition(pos);      
+      this._entityManager.Add(e);
+      e.SetActive(false);
+    }
+  }
+
+  _LoadApples() {
+    for(let i = 0; i < 20; i++) {
+      const pos = new THREE.Vector3(
+        (Math.random() * 2.0 - 1.0) * 250, 0, (Math.random() * 2.0 - 1.0) * 250
+      );
+      const e = new entity.Entity();
+      e.AddComponent(new gltf_component.StaticModelComponent({
+        scene: this._scene,
+        resourcePath: './resources/trash/',
+        resourceName: 'Apple.fbx',
         scale: 0.05,
         emissive: new THREE.Color(0x000000),
         specular: new THREE.Color(0x000000),
