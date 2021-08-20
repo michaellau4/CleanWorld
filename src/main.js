@@ -10,6 +10,7 @@ import {spatial_grid_controller} from './spatial_grid_controller.js';
 import {spatial_hash_grid} from './spatial_hash_grid.js';
 import {gltf_component} from './gltf_component.js';
 import {math} from './math.js';
+import {pickup_controller} from './pickup_controller.js';
 
 const _VS = `
 varying vec3 vWorldPosition;
@@ -673,7 +674,6 @@ class LoadWorld {
     this._LoadSky();
     this._LoadTrees();
     this._LoadRocks();
-    // this._LoadHouse();
     this._LoadClouds();
     this._LoadApples();
     this._LoadTrashCans();
@@ -682,25 +682,6 @@ class LoadWorld {
     this._LoadAnimatedModel();
     this._RAF();
   }
-
-  // _LoadHouse() {
-  //   const pos = (new THREE.Vector3(10, 0, 10))
-  //   const e = new entity.Entity();
-  //   e.AddComponent(new gltf_component.StaticModelComponent({
-  //     scene: this._scene,
-  //     resourcePath: './resources/house/',
-  //     resourceName: 'House2.fbx',
-  //     scale: 0.25,
-  //     emissive: new THREE.Color(0x000000),
-  //     specular: new THREE.Color(0x000000),
-  //     receiveShadow: true,
-  //     castShadow: true
-  //   }))
-  //   e.AddComponent(new spatial_grid_controller.SpatialGridController({grid: this._grid}));
-  //   e.SetPosition(pos);
-  //   this._entityManager.Add(e);
-  //   e.SetActive(false);
-  // }
 
   _LoadTrashCans() {
     const pos1 = new THREE.Vector3(30, 0, 20);
@@ -780,26 +761,6 @@ class LoadWorld {
     }
   }
 
-  //  _LoadHouse() {
-  //   const pos = new THREE.Vector3(
-  //     (Math.random() * 2.0 - 1.0) * 250, 0, (Math.random() * 2.0 - 1.0) * 250
-  //   );
-  //   const e = new entity.Entity();
-  //   e.AddComponent(new gltf_component.StaticModelComponent({
-  //     scene: this._scene,
-  //     resourcePath: './resources/trees/',
-  //     resourceName: 'House3.fbx',
-  //     scale: 0.25,
-  //     emissive: new THREE.Color(0x000000),
-  //     specular: new THREE.Color(0x000000),
-  //     receiveShadow: true,
-  //     castShadow: true
-  //   }));
-  //   e.AddComponent(new spatial_grid_controller.SpatialGridController({grid: this._grid}));
-  //   e.SetPosition(pos);      
-  //   this._entityManager.Add(e);
-  //   e.SetActive(false);
-  // }
 
   _LoadBushes() {
      for(let i = 0; i < 20; i++) {
@@ -907,6 +868,12 @@ class LoadWorld {
       camera: this._camera,
       target: this._controls,
     });
+    const player = new entity.Entity();
+    // player.AddComponent(new player_input.BasicCharacterControllerInput(params));
+    // player.AddComponent(new player_entity.BasicCharacterController(params));
+    player.AddComponent(new spatial_grid_controller.SpatialGridController({grid: this._grid}));
+    player.AddComponent(new pickup_controller.PickupController({timing: 0.7}));
+    this._entityManager.Add(player, 'player');
   }
 
   _OnWindowResize() {
