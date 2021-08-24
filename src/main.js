@@ -828,7 +828,7 @@ class LoadWorld {
       }));
       e.AddComponent(new spatial_grid_controller.SpatialGridController({grid: this._grid}));
       e.SetPosition(pos);      
-      this._entityManager.Add(e);
+      this._entityManager.Add(e, 'apple');
       e.SetActive(false);
     }
   }
@@ -950,7 +950,6 @@ class LoadWorld {
       }
 
       this._RAF();
-
       this._threejs.render(this._scene, this._camera);
       this._Step(t - this._previousRAF)
       this._previousRAF = t;
