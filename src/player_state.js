@@ -1,57 +1,8 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.118/build/three.module.js';
 
-export const player_state = (( ) => {
 
-  class FiniteStateMachine {
-    constructor() {
-      this._states = {};
-      this._currentState = null;
-    }
-  
-    _AddState(name, type) {
-      this._states[name] = type;
-    }
-  
-    SetState(name) {
-      const prevState = this._currentState;
-      
-      if (prevState) {
-        if (prevState.Name == name) {
-          return;
-        }
-        prevState.Exit();
-      }
-  
-      const state = new this._states[name](this);
-  
-      this._currentState = state;
-      state.Enter(prevState);
-    }
-  
-    Update(timeElapsed, input) {
-      if (this._currentState) {
-        this._currentState.Update(timeElapsed, input);
-      }
-    }
-  };
-  
-  
-  class CharacterFSM extends FiniteStateMachine {
-    constructor(proxy) {
-      super();
-      this._proxy = proxy;
-      this._Init();
-    }
-  
-    _Init() {
-      this._AddState('idle', IdleState);
-      this._AddState('walk', WalkState);
-      this._AddState('run', RunState);
-      this._AddState('dance', DanceState);
-      this._AddState('gather', GatherState);
-    }
-  };
-  
+export const player_state = (() => {
+
   class State {
     constructor(parent) {
       this._parent = parent;
@@ -66,55 +17,7 @@ export const player_state = (( ) => {
     constructor(parent) {
       super(parent);
   
-      this._FinishedCallback = () => {
-        this._Finished();
-      }
-    }
-  
-    get Name() {
-      return 'gather';
-    }
-  
-    Enter(prevState) {
-      const curAction = this._parent._proxy._animations['gather'].action;
-      const mixer = curAction.getMixer();
-      mixer.addEventListener('finished', this._FinishedCallback);
-  
-      if (prevState) {
-        const prevAction = this._parent._proxy._animations[prevState.Name].action;
-  
-        curAction.reset();  
-        curAction.setLoop(THREE.LoopOnce, 1);
-        curAction.clampWhenFinished = true;
-        curAction.crossFadeFrom(prevAction, 0.2, true);
-        curAction.play();
-      } else {
-        curAction.play();
-      }
-    }
-  
-    _Finished() {
-      this._Cleanup();
-      this._parent.SetState('idle');
-    }
-  
-    _Cleanup() {
-      const action = this._parent._proxy._animations['gather'].action;
-      
-      action.getMixer().removeEventListener('finished', this._CleanupCallback);
-    }
-  
-    Exit() {
-      this._Cleanup();
-    }
-  
-    Update(_) {
-    }
-  };
-  
-  class DanceState extends State {
-    constructor(parent) {
-      super(parent);
+      this._action = null;
   
       this._FinishedCallback = () => {
         this._Finished();
@@ -126,20 +29,20 @@ export const player_state = (( ) => {
     }
   
     Enter(prevState) {
-      const curAction = this._parent._proxy._animations['gather'].action;
-      const mixer = curAction.getMixer();
+      this._action = this._parent._proxy._animations['gather'].action;
+      const mixer = this._action.getMixer();
       mixer.addEventListener('finished', this._FinishedCallback);
   
       if (prevState) {
         const prevAction = this._parent._proxy._animations[prevState.Name].action;
   
-        curAction.reset();  
-        curAction.setLoop(THREE.LoopOnce, 1);
-        curAction.clampWhenFinished = true;
-        curAction.crossFadeFrom(prevAction, 0.2, true);
-        curAction.play();
+        this._action.reset();  
+        this._action.setLoop(THREE.LoopOnce, 1);
+        this._action.clampWhenFinished = true;
+        this._action.crossFadeFrom(prevAction, 0.2, true);
+        this._action.play();
       } else {
-        curAction.play();
+        this._action.play();
       }
     }
   
@@ -149,9 +52,9 @@ export const player_state = (( ) => {
     }
   
     _Cleanup() {
-      const action = this._parent._proxy._animations['gather'].action;
-      
-      action.getMixer().removeEventListener('finished', this._CleanupCallback);
+      if (this._action) {
+        this._action.getMixer().removeEventListener('finished', this._FinishedCallback);
+      }
     }
   
     Exit() {
@@ -161,7 +64,6 @@ export const player_state = (( ) => {
     Update(_) {
     }
   };
-  
   
   class WalkState extends State {
     constructor(parent) {
@@ -188,7 +90,7 @@ export const player_state = (( ) => {
           curAction.setEffectiveWeight(1.0);
         }
   
-        curAction.crossFadeFrom(prevAction, 0.5, true);
+        curAction.crossFadeFrom(prevAction, 0.1, true);
         curAction.play();
       } else {
         curAction.play();
@@ -236,7 +138,7 @@ export const player_state = (( ) => {
           curAction.setEffectiveWeight(1.0);
         }
   
-        curAction.crossFadeFrom(prevAction, 0.5, true);
+        curAction.crossFadeFrom(prevAction, 0.1, true);
         curAction.play();
       } else {
         curAction.play();
@@ -276,7 +178,7 @@ export const player_state = (( ) => {
         idleAction.enabled = true;
         idleAction.setEffectiveTimeScale(1.0);
         idleAction.setEffectiveWeight(1.0);
-        idleAction.crossFadeFrom(prevAction, 0.5, true);
+        idleAction.crossFadeFrom(prevAction, 0.25, true);
         idleAction.play();
       } else {
         idleAction.play();
@@ -290,8 +192,17 @@ export const player_state = (( ) => {
       if (input._keys.forward || input._keys.backward) {
         this._parent.SetState('walk');
       } else if (input._keys.space) {
-        this._parent.SetState('dance');
+        this._parent.SetState('gather');
       }
     }
   };
-})
+
+  return {
+    State: State,
+    GatherState: GatherState,
+    IdleState: IdleState,
+    WalkState: WalkState,
+    RunState: RunState
+  };
+
+})();
