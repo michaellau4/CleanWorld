@@ -7,7 +7,7 @@ import {gltf_component} from './gltf_component.js';
 import {player_input} from './player_input.js';
 import {math} from './math.js';
 import {spatial_hash_grid} from './spatial_hash_grid.js';
-import {ui_controller} from './ui_controller.js';
+// import {ui_controller} from './ui_controller.js';
 import {spatial_grid_controller} from './spatial_grid_controller.js';
 
 const _VS = `
@@ -43,12 +43,14 @@ class LoadWorld {
     this._threejs = new THREE.WebGLRenderer({
       antialias: true,
     });
+    this._threejs.outputEncoding = THREE.sRGBEncoding;
+    this._threejs.gammaFactor = 2.2;
     this._threejs.shadowMap.enabled = true;
     this._threejs.shadowMap.type = THREE.PCFSoftShadowMap;
     this._threejs.setPixelRatio(window.devicePixelRatio);
     this._threejs.setSize(window.innerWidth, window.innerHeight);
-
-    document.body.appendChild(this._threejs.domElement);
+    this._threejs.domElement.id = 'threejs';
+    document.getElementById('container').appendChild(this._threejs.domElement);
 
     window.addEventListener('resize', () => {
       this._OnWindowResize();
@@ -66,7 +68,7 @@ class LoadWorld {
     this._scene.fog = new THREE.FogExp2(0x89b2eb, 0.002);
 
     let light = new THREE.DirectionalLight(0xFFFFFF, 1.0);
-    light.position.set(20, 100, 10);
+    light.position.set(-10, 500, 10);
     light.target.position.set(0, 0, 0);
     light.castShadow = true;
     light.shadow.bias = -0.001;
@@ -82,13 +84,15 @@ class LoadWorld {
     light.shadow.camera.bottom = -100;
     this._scene.add(light);
 
-    light = new THREE.AmbientLight(0xFFFFFF, 2.0);
-    this._scene.add(light);
+    this._sun = light;
 
-    const controls = new OrbitControls(
-      this._camera, this._threejs.domElement);
-    controls.target.set(0, 20, 0);
-    controls.update();
+    // light = new THREE.AmbientLight(0xFFFFFF, 2.0);
+    // this._scene.add(light);
+
+    // const controls = new OrbitControls(
+    //   this._camera, this._threejs.domElement);
+    // controls.target.set(0, 20, 0);
+    // controls.update();
 
     const plane = new THREE.Mesh(
         new THREE.PlaneGeometry(700, 700, 10, 10),
@@ -96,12 +100,11 @@ class LoadWorld {
             color: 0x1a2e16,
           }));
     plane.castShadow = false;
-    plane.receiveShadow = false;
+    plane.receiveShadow = true;
     plane.rotation.x = -Math.PI / 2;
     this._scene.add(plane);
 
     this._mixers = [];
-    this._previousRAF = null;
     this._entityManager = new entity_manager.EntityManager();
     this._grid = new spatial_hash_grid.SpatialHashGrid(
       [[-1000, -1000], [1000, 1000]], [100, 100]);
@@ -114,8 +117,30 @@ class LoadWorld {
     this._LoadTrashCans();
     this._LoadGrass();
     this._LoadBushes();
-    this._LoadAnimatedModel();
+    this._LoadPlayer();
+
+    this._previousRAF = null;
     this._RAF();
+  }
+
+  _LoadPlayer() {
+    const params = {
+      camera: this._camera,
+      scene: this._scene,
+    };
+
+    const player = new entity.Entity();
+    player.AddComponent(new player_input.BasicCharacterControllerInput(params));
+    player.AddComponent(new player_entity.BasicCharacterController(params));
+    player.AddComponent(
+        new spatial_grid_controller.SpatialGridController({grid: this._grid}));
+    this._entityManager.Add(player, 'player');
+    const camera = new entity.Entity();
+    camera.AddComponent(
+        new third_person_camera.ThirdPersonCamera({
+            camera: this._camera,
+            target: this._entityManager.Get('player')}));
+    this._entityManager.Add(camera, 'player-camera');
   }
 
   _LoadTrashCans() {
@@ -292,24 +317,24 @@ class LoadWorld {
     }
   }
 
-  _LoadAnimatedModel() {
-    const params = {
-      camera: this._camera,
-      scene: this._scene,
-    }
-    this._controls = new BasicCharacterController(params);
+  // _LoadAnimatedModel() {
+  //   const params = {
+  //     camera: this._camera,
+  //     scene: this._scene,
+  //   }
+  //   this._controls = new BasicCharacterController(params);
 
-    this._thirdPersonCamera = new ThirdPersonCamera({
-      camera: this._camera,
-      target: this._controls,
-    });
-    const player = new entity.Entity();
-    // player.AddComponent(new player_input.BasicCharacterControllerInput(params));
-    // player.AddComponent(new player_entity.BasicCharacterController(params));
-    player.AddComponent(new spatial_grid_controller.SpatialGridController({grid: this._grid}));
-    player.AddComponent(new pickup_controller.PickupController({timing: 0.7}));
-    this._entityManager.Add(player, 'player');
-  }
+  //   this._thirdPersonCamera = new ThirdPersonCamera({
+  //     camera: this._camera,
+  //     target: this._controls,
+  //   });
+  //   const player = new entity.Entity();
+  //   // player.AddComponent(new player_input.BasicCharacterControllerInput(params));
+  //   // player.AddComponent(new player_entity.BasicCharacterController(params));
+  //   player.AddComponent(new spatial_grid_controller.SpatialGridController({grid: this._grid}));
+  //   player.AddComponent(new pickup_controller.PickupController({timing: 0.7}));
+  //   this._entityManager.Add(player, 'player');
+  // }
 
   _OnWindowResize() {
     this._camera.aspect = window.innerWidth / window.innerHeight;
@@ -368,14 +393,11 @@ class LoadWorld {
   }
 
   _Step(timeElapsed) {
-    const timeElapsedS = timeElapsed * 0.001;
-    if (this._mixers) {
-      this._mixers.map(m => m.update(timeElapsedS));
-    }
-    if (this._controls) {
-      this._controls.Update(timeElapsedS);
-    }
-    this._thirdPersonCamera.Update(timeElapsedS);
+    const timeElapsedS = Math.min(1.0 / 30.0, timeElapsed * 0.001);
+
+    this._UpdateSun();
+
+    this._entityManager.Update(timeElapsedS);
   }
 
   _RAF() {
@@ -389,6 +411,17 @@ class LoadWorld {
       this._Step(t - this._previousRAF)
       this._previousRAF = t;
     });
+  }
+
+  _UpdateSun() {
+    const player = this._entityManager.Get('player');
+    const pos = player._position;
+
+    this._sun.position.copy(pos);
+    this._sun.position.add(new THREE.Vector3(-10, 500, -10));
+    this._sun.target.position.copy(pos);
+    this._sun.updateMatrixWorld();
+    this._sun.target.updateMatrixWorld();
   }
 
 }

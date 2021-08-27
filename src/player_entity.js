@@ -3,8 +3,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.118.1/build/three.m
 import {FBXLoader} from 'https://cdn.jsdelivr.net/npm/three@0.118.1/examples/jsm/loaders/FBXLoader.js';
 
 import {entity} from './entity.js';
-import {finite_state_machine} from './finite-state-machine.js';
-import {player_state} from './player-state.js';
+import {finite_state_machine} from './finite_state_machine.js';
+import {player_state} from './player_state.js';
 
 
 export const player_entity = (() => {
@@ -64,7 +64,7 @@ export const player_entity = (() => {
       loader.setPath('./resources/xbot/');
       loader.load('xbot.fbx', (fbx) => {
         this._target = fbx;
-        this._target.scale.setScalar(0.035);
+        this._target.scale.setScalar(0.1);
         this._params.scene.add(this._target);
   
         this._bones = {};
