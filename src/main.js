@@ -86,14 +86,6 @@ class LoadWorld {
 
     this._sun = light;
 
-    // light = new THREE.AmbientLight(0xFFFFFF, 2.0);
-    // this._scene.add(light);
-
-    // const controls = new OrbitControls(
-    //   this._camera, this._threejs.domElement);
-    // controls.target.set(0, 20, 0);
-    // controls.update();
-
     const plane = new THREE.Mesh(
         new THREE.PlaneGeometry(700, 700, 10, 10),
         new THREE.MeshStandardMaterial({
@@ -115,7 +107,6 @@ class LoadWorld {
     this._LoadClouds();
     this._LoadApples();
     this._LoadTrashCans();
-    this._LoadGrass();
     this._LoadBushes();
     this._LoadPlayer();
 
@@ -134,6 +125,7 @@ class LoadWorld {
     player.AddComponent(new player_entity.BasicCharacterController(params));
     player.AddComponent(
         new spatial_grid_controller.SpatialGridController({grid: this._grid}));
+    player.AddComponent(new attack_controller.AttackController({timing: 0.35}));
     this._entityManager.Add(player, 'player');
     const camera = new entity.Entity();
     camera.AddComponent(
@@ -317,25 +309,6 @@ class LoadWorld {
     }
   }
 
-  // _LoadAnimatedModel() {
-  //   const params = {
-  //     camera: this._camera,
-  //     scene: this._scene,
-  //   }
-  //   this._controls = new BasicCharacterController(params);
-
-  //   this._thirdPersonCamera = new ThirdPersonCamera({
-  //     camera: this._camera,
-  //     target: this._controls,
-  //   });
-  //   const player = new entity.Entity();
-  //   // player.AddComponent(new player_input.BasicCharacterControllerInput(params));
-  //   // player.AddComponent(new player_entity.BasicCharacterController(params));
-  //   player.AddComponent(new spatial_grid_controller.SpatialGridController({grid: this._grid}));
-  //   player.AddComponent(new pickup_controller.PickupController({timing: 0.7}));
-  //   this._entityManager.Add(player, 'player');
-  // }
-
   _OnWindowResize() {
     this._camera.aspect = window.innerWidth / window.innerHeight;
     this._camera.updateProjectionMatrix();
@@ -432,4 +405,3 @@ window.addEventListener('DOMContentLoaded', () => {
   
   _APP = new LoadWorld();
 });
-
