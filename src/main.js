@@ -9,6 +9,8 @@ import {math} from './math.js';
 import {spatial_hash_grid} from './spatial_hash_grid.js';
 // import {ui_controller} from './ui_controller.js';
 import {spatial_grid_controller} from './spatial_grid_controller.js';
+import { attack_controller } from './attack_controller.js';
+import { pickup_controller } from './pickup_controller.js';
 
 const _VS = `
 varying vec3 vWorldPosition;
@@ -100,7 +102,7 @@ class LoadWorld {
     this._entityManager = new entity_manager.EntityManager();
     this._grid = new spatial_hash_grid.SpatialHashGrid(
       [[-1000, -1000], [1000, 1000]], [100, 100]);
-
+    console.log(this._entityManager);
     this._LoadSky();
     this._LoadTrees();
     this._LoadRocks();
@@ -125,7 +127,7 @@ class LoadWorld {
     player.AddComponent(new player_entity.BasicCharacterController(params));
     player.AddComponent(
         new spatial_grid_controller.SpatialGridController({grid: this._grid}));
-    player.AddComponent(new attack_controller.AttackController({timing: 0.35}));
+    player.AddComponent(new pickup_controller.PickupController({timing: 0.7}));
     this._entityManager.Add(player, 'player');
     const camera = new entity.Entity();
     camera.AddComponent(
@@ -280,8 +282,7 @@ class LoadWorld {
       }));
       e.AddComponent(new spatial_grid_controller.SpatialGridController({grid: this._grid}));
       e.SetPosition(pos);      
-      this._entityManager.Add(e, 'apple');
-      e.SetActive(false);
+      this._entityManager.Add(e);
     }
   }
 

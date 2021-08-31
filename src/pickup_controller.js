@@ -40,6 +40,14 @@ export const pickup_controller = (() => {
         const grid = this.GetComponent('SpatialGridController');
         const nearby = grid.FindNearbyEntities(1);
         console.log(nearby);
+        if (nearby) {
+          for (let a of nearby) {
+            let target = a.entity;
+            let b = this.FindEntity(target._name)
+            console.log(b);
+            
+          }
+        }
         // const _Filter = (c) => {
         //   if (c.entity == this._parent) {
         //     return false;
