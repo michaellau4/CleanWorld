@@ -5,8 +5,6 @@ export const spatial_hash_grid = (() => {
 
   class SpatialHashGrid {
     constructor(bounds, dimensions) {
-      console.log(bounds)
-      console.log(dimensions)
       const [x, y] = dimensions;
       this._cells = [...Array(x)].map(_ => [...Array(y)].map(_ => (null)));
       this._dimensions = dimensions;

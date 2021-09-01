@@ -33,8 +33,6 @@ export const third_person_camera = (() => {
       const idealOffset = this._CalculateIdealOffset();
       const idealLookat = this._CalculateIdealLookat();
 
-      // const t = 0.05;
-      // const t = 4.0 * timeElapsed;
       const t = 1.0 - Math.pow(0.01, timeElapsed);
 
       this._currentPosition.lerp(idealOffset, t);

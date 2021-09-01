@@ -9,7 +9,6 @@ import {math} from './math.js';
 import {spatial_hash_grid} from './spatial_hash_grid.js';
 // import {ui_controller} from './ui_controller.js';
 import {spatial_grid_controller} from './spatial_grid_controller.js';
-import { attack_controller } from './attack_controller.js';
 import { pickup_controller } from './pickup_controller.js';
 
 const _VS = `
