@@ -8,22 +8,41 @@ body {
   overscroll-behavior: none;
 }
 
-.nav-bar {
-  display: flex;
-  position: relative;
-  height: 80px;
-  background-color: burlywood;
-}
-
-.game-nav {
-  position: inherit;
-  /* top: 80px; */
-  background-color: transparent;
-  color: black;
-  font-size: 26px;
-}
-
 .container {
   height: 500px;
   width: 500px;
+}
+
+.menu {
+  position: absolute;
+  height: 300px;
+  width: 400px;
+  top: 200px;
+  left: 200px;
+  background-color: black;
+  border-radius: 4px;
+  opacity: 0.55;
+  color: white;
+  font-size: 20px;
+}
+
+.welcome {
+  display: flex;
+  justify-content: center;
+}
+
+.controls {
+  display: flex;
+  justify-content: center;
+}
+
+.directions {
+  padding-top: 20px;
+  list-style: none;
+  padding-left: 10px;
+}
+
+.directions > li {
+  padding-left: 20px;
+  padding-top: 10px;
 }

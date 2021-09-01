@@ -5,9 +5,8 @@ import {player_entity} from './player_entity.js'
 import {entity} from './entity.js';
 import {gltf_component} from './gltf_component.js';
 import {player_input} from './player_input.js';
-import {math} from './math.js';
 import {spatial_hash_grid} from './spatial_hash_grid.js';
-// import {ui_controller} from './ui_controller.js';
+import {ui_controller} from './ui_controller.js';
 import {spatial_grid_controller} from './spatial_grid_controller.js';
 import { pickup_controller } from './pickup_controller.js';
 
@@ -397,11 +396,16 @@ class LoadWorld {
     this._sun.target.updateMatrixWorld();
   }
 
+  _LoadControllers() {
+    const ui = new entity.Entity();
+    ui.AddComponent(new ui_controller.UIController());
+    this._entityManager.Add(ui, 'ui');
+  }
+
 }
 
 let _APP = null;
 
 window.addEventListener('DOMContentLoaded', () => {
-  
   _APP = new LoadWorld();
 });
