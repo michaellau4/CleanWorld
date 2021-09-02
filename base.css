@@ -15,7 +15,7 @@ body {
 
 .menu {
   position: absolute;
-  height: 300px;
+  height: 310px;
   width: 400px;
   top: 200px;
   left: 200px;
@@ -45,4 +45,21 @@ body {
 .directions > li {
   padding-left: 20px;
   padding-top: 10px;
+}
+
+.links {
+  display: flex;
+  justify-content: center;
+  padding-top: 10px;
+}
+
+.links > a {
+  text-decoration: none;
+  color: white;
+  font-size: 25px;
+  padding-left: 12px;
+}
+
+.links > a:hover {
+  color: darkcyan;
 }
