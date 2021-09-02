@@ -6,7 +6,6 @@ import {entity} from './entity.js';
 import {gltf_component} from './gltf_component.js';
 import {player_input} from './player_input.js';
 import {spatial_hash_grid} from './spatial_hash_grid.js';
-import {ui_controller} from './ui_controller.js';
 import {spatial_grid_controller} from './spatial_grid_controller.js';
 import { pickup_controller } from './pickup_controller.js';
 
@@ -106,7 +105,7 @@ class LoadWorld {
     this._LoadRocks();
     this._LoadClouds();
     this._LoadApples();
-    this._LoadTrashCans();
+    // this._LoadTrashCans();
     this._LoadBushes();
     this._LoadPlayer();
 
